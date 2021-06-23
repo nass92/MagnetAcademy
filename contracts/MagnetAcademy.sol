@@ -10,6 +10,7 @@ contract MagnetAcademy {
 
     address private _rector;
     Counters.Counter private _nbSchools;
+    Counters.Counter private _schoolId;
     mapping(address => bool) private _admins;
     mapping(address => address) private _schoolDirectors; // director to school
     mapping(address => address) private _schools; // school to director
@@ -81,7 +82,7 @@ contract MagnetAcademy {
         OnlyNotSchoolDirector(directorAddress)
         returns (bool)
     {
-        SchoolMagnet school = new SchoolMagnet(directorAddress, name);
+        SchoolMagnet school = new SchoolMagnet(name, directorAddress);
         _schoolDirectors[directorAddress] = address(school);
         _schools[address(school)] = directorAddress;
         emit DirectorSet(directorAddress, address(school));

@@ -17,8 +17,7 @@ describe('MagnetAcademy', function () {
     lambdaUser,
     lambdaAddress,
     MagnetAcademy,
-    magnetAcademy,
-    SchoolMagnet;
+    magnetAcademy;
   const school1Name = 'School1';
   const school2Name = 'School2';
   beforeEach(async function () {
@@ -58,6 +57,8 @@ describe('MagnetAcademy', function () {
         .withArgs(academyAdmin2.address);
     });
     it('Only rector can add a a new admin', async function () {
+      // add a new admin
+      await magnetAcademy.connect(rector).addAdmin(academyAdmin1.address);
       // a lambda user can not add a new admin
       await expect(
         magnetAcademy.connect(lambdaUser).addAdmin(academyAdmin2.address),
