@@ -1,6 +1,6 @@
 require('@nomiclabs/hardhat-waffle');
 require('@nomiclabs/hardhat-solhint');
-require('hardhat-docgen');
+// require('hardhat-docgen');
 
 require('dotenv').config();
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
