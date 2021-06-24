@@ -6,6 +6,7 @@ NOT FINISHED YET
 pragma solidity ^0.8.0;
 
 contract SchoolMagnet {
+    // TODO: need to change _director if director changes
     address private _director;
     string private _name;
 

@@ -43,10 +43,10 @@ contract MagnetAcademy is AccessControl {
     }
 
     constructor(address rector_) {
-        _setupRole(DEFAULT_ADMIN_ROLE, rector_);
         _setupRole(RECTOR_ROLE, rector_);
         _setupRole(ADMIN_ROLE, rector_);
         _setRoleAdmin(DIRECTOR_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(ADMIN_ROLE, RECTOR_ROLE);
         _diploMagnet = new DiploMagnet();
         _rector = rector_;
     }
@@ -103,6 +103,7 @@ contract MagnetAcademy is AccessControl {
         address directorAddress = _schools[schoolAddress];
         _schools[schoolAddress] = address(0);
         _schoolDirectors[directorAddress] = address(0);
+        revokeRole(DIRECTOR_ROLE, directorAddress);
         _nbSchools.decrement();
         emit SchoolDeleted(schoolAddress, directorAddress);
         return true;
