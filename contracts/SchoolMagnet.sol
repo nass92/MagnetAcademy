@@ -9,6 +9,11 @@ contract SchoolMagnet {
     address private _director;
     string private _name;
 
+    modifier OnlyDirector() {
+        require(msg.sender == _director, "SchoolMagnet: Only director can perform this action");
+        _;
+    }
+
     constructor(string memory name_, address director_) {
         _name = name_;
         _director = director_;

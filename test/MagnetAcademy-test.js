@@ -14,6 +14,8 @@ describe('MagnetAcademy', function () {
     director3,
     academyAdmin1,
     academyAdmin2,
+    student1,
+    student2,
     lambdaUser,
     lambdaAddress,
     MagnetAcademy,
@@ -24,8 +26,19 @@ describe('MagnetAcademy', function () {
   const RECTOR_ROLE = ethers.utils.id('RECTOR_ROLE');
   const ADMIN_ROLE = ethers.utils.id('ADMIN_ROLE');
   beforeEach(async function () {
-    [deployer, rector, academyAdmin1, academyAdmin2, lambdaUser, lambdaAddress, director1, director2, director3] =
-      await ethers.getSigners();
+    [
+      deployer,
+      rector,
+      academyAdmin1,
+      academyAdmin2,
+      student1,
+      student2,
+      lambdaUser,
+      lambdaAddress,
+      director1,
+      director2,
+      director3,
+    ] = await ethers.getSigners();
     MagnetAcademy = await ethers.getContractFactory('MagnetAcademy');
     magnetAcademy = await MagnetAcademy.connect(deployer).deploy(rector.address);
     await magnetAcademy.deployed();
@@ -40,6 +53,9 @@ describe('MagnetAcademy', function () {
     });
     it('Should have 0 school created in the academy at deployment', async function () {
       expect(await magnetAcademy.nbSchools()).to.equal(0);
+    });
+    it('Should have a DiploMagnet address', async function () {
+      expect(await magnetAcademy.diploMagnet()).to.not.equal(ethers.constants.AddressZero);
     });
     it('Rector should have DEFAULT_ADMIN_ROLE', async function () {
       expect(await magnetAcademy.hasRole(DEFAULT_ADMIN_ROLE, rector.address)).to.be.true;
@@ -253,6 +269,31 @@ describe('MagnetAcademy', function () {
       await expect(
         magnetAcademy.connect(academyAdmin1).changeSchoolDirector(director1.address, director2.address)
       ).to.be.revertedWith('MagnetAcademy: Already a school director');
+    });
+  });
+  describe('Certification', function () {
+    let DiploMagnet, diploMagnet;
+    beforeEach(async function () {
+      diploMagnetAddress = await magnetAcademy.diploMagnet();
+      DiploMagnet = await ethers.getContractFactory('DiploMagnet');
+      diploMagnet = await DiploMagnet.attach(diploMagnetAddress);
+      await magnetAcademy.connect(rector).addAdmin(academyAdmin1.address);
+      await magnetAcademy.connect(academyAdmin1).createSchool(school1Name, director1.address);
+    });
+    it('Director can certify student', async function () {
+      expect(await diploMagnet.balanceOf(student1.address)).to.equal(0);
+      await magnetAcademy.connect(director1).certify(student1.address);
+      expect(await diploMagnet.balanceOf(student1.address)).to.equal(1);
+    });
+    it('Should revert if not a director of a school tried to certify', async function () {
+      await expect(magnetAcademy.connect(rector).certify(student1.address), 'A rector can not certify a student').to.be
+        .reverted;
+      await expect(magnetAcademy.connect(academyAdmin1).certify(student1.address), 'An admin can not certify a student')
+        .to.be.reverted;
+      await expect(
+        magnetAcademy.connect(lambdaAddress).certify(student1.address),
+        'A lambda user can not certify a student'
+      ).to.be.reverted;
     });
   });
 });
