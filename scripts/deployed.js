@@ -1,37 +1,38 @@
-const { readFile, writeFile } = require('fs/promises');
-const chalk = require('chalk');
+/* eslint-disable space-before-function-paren */
+/* eslint-disable no-undef */
+const hre = require('hardhat');
+const { deployed } = require('./deployed');
 
-const FILE_PATH = './deployed.json';
-/*
-  This function should be called after a successuf deployment in your scripts.
-  It will create/update a file named deployed.json containing deployment informations of your smart contracts.
-  DO NOT EDIT deployed.json MANUALLY, this is an automatically generated file.
-*/
-exports.deployed = async (contractName, networkName, address) => {
-  console.log(chalk.green.bold(`${contractName} deployed on ${networkName} at ${address}`));
-  console.log(chalk.green(`updating ${FILE_PATH} with ${contractName} on ${networkName} at ${address}`));
-  // Open and Read current FILE_PATH if exists
-  let jsonString = '';
-  let obj = {};
-  try {
-    jsonString = await readFile(FILE_PATH, 'utf-8');
-    obj = JSON.parse(jsonString);
-  } catch (e) {
-    // If does not exist, do nothing
-  }
-  const _addrObj = {};
-  const _chainObj = {};
-  let _networksObj = {};
-  _addrObj.address = address;
-  _chainObj[networkName] = _addrObj;
-  _networksObj = { ...obj[contractName], ..._chainObj };
-  obj[contractName] = _networksObj;
-  jsonString = JSON.stringify(obj);
+async function main() {
+  // Hardhat always runs the compile task when running scripts with its command
+  // line interface.
+  //
+  // If this script is run directly using `node` you may want to call compile
+  // manually to make sure everything is compiled
+  // await hre.run('compile');
 
-  try {
-    await writeFile(FILE_PATH, jsonString);
-  } catch (e) {
-    console.log(e.message);
-    throw e;
-  }
-};
+  // Optionnel car l'account deployer est utilisé par défaut
+  const [deployer] = await ethers.getSigners();
+  console.log('Deploying contracts with the account:', deployer.address);
+
+  // We get the contract to deploy
+  const TXT = await hre.ethers.getContractFactory('TexToken');
+  const txt = await TXT.deploy();
+
+  // Attendre que le contrat soit réellement déployé, cad que la transaction de déploiement
+  // soit incluse dans un bloc
+  await txt.deployed();
+  console.log(txt.interface.functions);
+
+  // Create/update deployed.json and print usefull information on the console.
+  await deployed('TexToken', hre.network.name, txt.address);
+}
+
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
